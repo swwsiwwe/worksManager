@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+   <typeAliases>
+<!--       <typeAlias type="com.company.domain.User" alias="User"></typeAlias>-->
+       <package name="com.company.domain"/>
+   </typeAliases>
+    
+    <!--配置环境-->
+    <environments default="mysql">
+        <!--配置MySQL环境-->
+        <environment id="mysql">
+            <!--配置事务类型-->
+            <transactionManager type="JDBC"/>
+            <!--配置数据源（连接池）-->
+            <dataSource type="POOLED">
+                <!--配置数据源的四个基本信息-->
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+<!--        选用CTT时区        -->
+                <property name="url" value="jdbc:mysql://localhost:3306/myjdbc?serverTimezone=CTT"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root"/>
+            </dataSource>
+        </environment>
+
+    </environments>
+    <!--指定映射配置文件位置 每个dao有一个独立配置文件-->
+    <mappers>
+        <mapper class="com.company.dao.IUserDao"></mapper>
+        <mapper class="com.company.dao.ITeacherDao"></mapper>
+        <mapper class="com.company.dao.IUserWorkDao"></mapper>
+        <mapper class="com.company.dao.IWorkDao"></mapper>
+    </mappers>
+</configuration>
