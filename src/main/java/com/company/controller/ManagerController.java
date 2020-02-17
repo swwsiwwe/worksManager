@@ -17,13 +17,13 @@ import java.util.List;
 public class ManagerController {
     @RequestMapping("/manager/create")
     public void createTeacher(HttpServletRequest request,HttpServletResponse response,String workId,String type){
-        Manager m = (Manager) LoginService.getLogin(request, Key.Manager);
+        Manager m = (Manager) LoginService.getLogin(request, Key.MANAGER);
         if (m == null) {
             JSONObject js = JsonService.createJson(false);
             JsonService.putJson(js, "error", "timeOut");
             JsonService.write(response, js);
         }else{
-            LoginService.saveLogin(request, response, m, Key.Manager);
+            LoginService.saveLogin(request, response, m, Key.MANAGER);
             Teacher t = new Teacher();
             t.setWorkID(workId);
             t.setPassword(workId);
@@ -44,13 +44,13 @@ public class ManagerController {
      */
     @RequestMapping("/manager/delete")
     public void delete(HttpServletRequest request,HttpServletResponse response,String key,String id) {
-        Manager m = (Manager) LoginService.getLogin(request, Key.Manager);
+        Manager m = (Manager) LoginService.getLogin(request, Key.MANAGER);
         if (m == null) {
             JSONObject js = JsonService.createJson(false);
             JsonService.putJson(js, "error", "timeOut");
             JsonService.write(response, js);
         } else {
-            LoginService.saveLogin(request, response, m, Key.Manager);
+            LoginService.saveLogin(request, response, m, Key.MANAGER);
             if ("student".equals(key)) {
                 List<UserWork> list = ManagerService.deleteUser(id);
                 if (list != null && !list.isEmpty()) {
@@ -83,13 +83,14 @@ public class ManagerController {
      */
     @RequestMapping("/manager/selectUsers")
     public void selectUsers(HttpServletRequest request,HttpServletResponse response){
-        Manager m = (Manager) LoginService.getLogin(request, Key.Manager);
+        System.out.println(LoginService.getLogin(request, Key.MANAGER).toString());
+        Manager m = (Manager) LoginService.getLogin(request, Key.MANAGER);
         if(m==null){
             JSONObject js = JsonService.createJson(false);
             JsonService.putJson(js,"error","timeOut");
             JsonService.write(response,js);
         }else{
-            LoginService.saveLogin(request,response,m,Key.Manager);
+            LoginService.saveLogin(request,response,m,Key.MANAGER);
             List<User> list = ManagerService.findAllUsers();
             JSONObject js = JsonService.createJson(true);
             JsonService.writeUsersJson(js,list);
@@ -104,13 +105,13 @@ public class ManagerController {
      */
     @RequestMapping("/manager/selectTeachers")
     public void selectTeachers(HttpServletRequest request,HttpServletResponse response){
-        Manager m = (Manager) LoginService.getLogin(request, Key.Manager);
+        Manager m = (Manager) LoginService.getLogin(request, Key.MANAGER);
         if(m==null){
             JSONObject js = JsonService.createJson(false);
             JsonService.putJson(js,"error","timeOut");
             JsonService.write(response,js);
         }else{
-            LoginService.saveLogin(request,response,m,Key.Manager);
+            LoginService.saveLogin(request,response,m,Key.MANAGER);
             List<Teacher> list = ManagerService.findAllTeachers();
             JSONObject js = JsonService.createJson(true);
             JsonService.writeTeachersJson(js,list);
@@ -127,13 +128,13 @@ public class ManagerController {
      */
     @RequestMapping("/manager/updatePassword")
     public void updatePassword(HttpServletRequest request,HttpServletResponse response,String key,String id){
-        Manager m = (Manager) LoginService.getLogin(request, Key.Manager);
+        Manager m = (Manager) LoginService.getLogin(request, Key.MANAGER);
         if(m==null){
             JSONObject js = JsonService.createJson(false);
             JsonService.putJson(js,"error","timeOut");
             JsonService.write(response,js);
         }else{
-            LoginService.saveLogin(request,response,m,Key.Manager);
+            LoginService.saveLogin(request,response,m,Key.MANAGER);
             if("student".equals(key)){
                 ManagerService.updateStudent(id);
             }else if("teacher".equals(key)){

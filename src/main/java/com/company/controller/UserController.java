@@ -10,18 +10,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.URI;
-import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
 
 /**
  * 用户控制类
@@ -30,12 +29,21 @@ import java.util.Map;
 @RequestMapping("/01")
 public class UserController {
     /**
-     * 注册账户
-     * @param user
+     * ok
+     * 考核
+     * @param json
+     * @param request
      * @param response
      */
     @RequestMapping("/user/create")
-    public void create(User user, HttpServletRequest request, HttpServletResponse response) {
+    public void create(@RequestBody String json, HttpServletRequest request, HttpServletResponse response) {
+        Map<String,String> map = (Map<String, String>)JsonService.getJson(json);
+        User user = new User();
+        user.setPassword(map.get("password"));
+        user.setLevel(Integer.parseInt(map.get("level")));
+        user.setType(map.get("type"));
+        user.setStudentID(map.get("studentID"));
+        user.setName(map.get("name"));
         User user1 = UserService.findByStudentID(user.getStudentID());
         if (user1 == null) {
             UserService.insert(user);
@@ -60,9 +68,8 @@ public class UserController {
     @RequestMapping("/login")
     public void login(@RequestBody String json, HttpServletRequest req, HttpServletResponse resp) {
         Map<String, String> map = (Map<String, String>) JsonService.getJson(json);
-        System.out.println(map);
         String id = map.get("id");
-        Integer identity = Integer.parseInt(map.get("idenity"));
+        int identity = Integer.parseInt(map.get("idenity"));
         String password = map.get("Password");
         String verifyCode = map.get("verifyCod");
         String val = "";
@@ -99,21 +106,26 @@ public class UserController {
                 }
             }
             else {
-                if (!"aaa".equals(id) || !"bbb".equals(password)) {
+                if (!"123".equals(id) || !"root".equals(password)) {
                     val = "账户名或密码错误!";
                     flag = false;
                 } else {
                     flag = true;
-                    LoginService.saveLogin(req, resp, "manager", "manager");
+                    Manager m = new Manager();
+                    m.setPassword("root");
+                    m.setId("123");
+                    LoginService.saveLogin(req, resp, m, "manager");
                 }
             }
         }
         JSONObject js = JsonService.createJson(flag);
         if (flag) {
             JsonService.putJson(js, "login", Integer.toString(identity));
+            JsonService.putJson(js,"identity",Integer.toString(identity));
         } else {
             JsonService.putJson(js, "error", val);
         }
+
         JsonService.write(resp, js);
     }
 
@@ -147,7 +159,6 @@ public class UserController {
     @RequestMapping("/user/findUser")
     public void findByStudentID(HttpServletRequest request, HttpServletResponse response) {
         User user = (User) LoginService.getLogin(request, Key.USER);
-        System.out.println(user);
         if (user == null) {
             JSONObject js = JsonService.createJson(false);
             JsonService.putJson(js, "error", "timeOut");
@@ -170,15 +181,12 @@ public class UserController {
      */
     @RequestMapping("/user/update")
     public void updateUser(@RequestBody String s,HttpServletRequest request, HttpServletResponse response/* User user*/) {
-
         Map<String,String> map = (Map<String, String>) JsonService.getJson(s);
         String level = map.get("level");
         String name = map.get("name");
         String studentID = map.get("studentID");
         String type = map.get("type");
-        //System.out.println(level+name+studentID+type);
         User user1 = (User) LoginService.getLogin(request, Key.USER);
-        System.out.println(user1);
         if (user1 == null || user1.getStudentID() == null) {
             JSONObject js = JsonService.createJson(false);
             JsonService.putJson(js, "error", "timeOut");
@@ -209,9 +217,7 @@ public class UserController {
     @RequestMapping("/user/updatePassword")
     public void updateUserPassword(@RequestBody String s, HttpServletRequest request, HttpServletResponse response) {
         User user = (User) LoginService.getLogin(request, Key.USER);
-        System.out.println(user);
         Map<String,String> map = (Map<String, String>) JsonService.getJson(s);
-        System.out.println(map);
         String old_password = map.get("old_password");
         String new_password1 = map.get("new_password1");
         String new_password2 = map.get("new_password2");
@@ -237,7 +243,6 @@ public class UserController {
             JSONObject js = JsonService.createJson(true);
             JsonService.write(response, js);
         }
-        System.out.println(user);
     }
 
     /**
@@ -254,6 +259,7 @@ public class UserController {
             JsonService.putJson(js, "error", "timeOut");
             JsonService.write(response, js);
         } else {
+
             LoginService.saveLogin(request, response, user, Key.USER);
             String type = user.getType();
             int level = user.getLevel();
@@ -264,6 +270,13 @@ public class UserController {
         }
     }
 
+    /**
+     * ok
+     * 显示考核界面
+     * @param request
+     * @param response
+     * @param work
+     */
     @RequestMapping("/user/getWork")
     public void getWork(HttpServletRequest request, HttpServletResponse response, String work) {
         User user = (User) LoginService.getLogin(request, Key.USER);
@@ -281,13 +294,13 @@ public class UserController {
 
     /**
      * ok
+     * 学生查询已提交作业
      * @param request
      * @param response
      */
     @RequestMapping("/user/getMyWorks")
     public void getMyWorks(HttpServletRequest request, HttpServletResponse response) {
         User user = (User) LoginService.getLogin(request, Key.USER);
-        System.out.println("##"+user);
         if (user == null) {
             JSONObject js = JsonService.createJson(false);
             JsonService.putJson(js, "error", "timeOut");
@@ -295,19 +308,22 @@ public class UserController {
         } else {
             LoginService.saveLogin(request, response, user, Key.USER);
             JSONObject js = JsonService.createJson(true);
-           // System.out.println(UserService.getMyWorks(user.getStudentID()));
             JsonService.writeArrayUserWorkJson(js, UserService.getMyWorks(user.getStudentID()));
             System.out.println(js.toJSONString());
             JsonService.write(response, js);
         }
     }
 
+    /**
+     * ok
+     * 在线上传作业
+     * @param sfile
+     * @param req
+     * @param resp
+     * @throws Exception
+     */
     @RequestMapping("/user/onLineUpload")
     public void upload(@RequestParam("sfile") MultipartFile sfile, HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        System.out.println(req);
-
-        //System.out.println(code);
-
         String work = req.getParameter("code");
         System.out.println(work+sfile.toString());
         User user = (User) LoginService.getLogin(req, Key.USER);
@@ -327,7 +343,6 @@ public class UserController {
                 /*检测后缀名*/
                 String str = filename.substring(filename.lastIndexOf("."));
                 if (".zip".equals(str)) {
-                    //String uid = WorkService.getWorkID(user.getType(),user.getLevel());
                     filename = work + user.getStudentID() + ".zip";
                     /*文件上传*/
                     UploadService.upload(req, sfile, "/uploads/", filename);
@@ -350,12 +365,11 @@ public class UserController {
 
     /**
      * 离线上传 url上传
-     *
+     *ok
      * @param req
      * @param resp
      * @param upload
      * @param studentID
-
      * @throws Exception
      */
     @RequestMapping("/user/offLineUpload")
@@ -368,7 +382,7 @@ public class UserController {
         }
         else if (!user.getName().equals(name)) {
             JSONObject js = JsonService.createJson(false);
-            JsonService.putJson(js, "error", "密码错误");
+            JsonService.putJson(js, "error", "姓名错误");
             JsonService.write(resp, js);
         }
         else {
@@ -426,8 +440,15 @@ public class UserController {
         }
     }
 
+    /**
+     * 删除/批量删除
+     * @param request
+     * @param response
+     */
     @RequestMapping("/user/deleteUserWorks")
-    public void deleteUserWorks(HttpServletRequest request, HttpServletResponse response) {
+    public void deleteUserWorks(HttpServletRequest request, HttpServletResponse response,@RequestBody String jsons) {
+        Map<String,List<Map<String,String>>> map = (Map<String, List<Map<String, String>>>) JsonService.getJson(jsons);
+        List<Map<String,String>> list = map.get("work");
         User user = (User) LoginService.getLogin(request, Key.USER);
         if (user == null) {
             JSONObject js = JsonService.createJson(false);
@@ -435,16 +456,28 @@ public class UserController {
             JsonService.write(response, js);
         } else {
             LoginService.saveLogin(request, response, user, Key.USER);
-            UserWorkService.deleteWorks(user.getStudentID());
-
-            //UploadService.workDelete(request, "/uploads/", work);
-
-
+            List<String> p=new ArrayList<>();
+            for(Map<String,String> work:list){
+                p.add(work.get("work"));
+            }
+            System.out.println(p);
+            UserWorkService.deleteWorks(user.getStudentID(),p);
+            for(String work:p){
+                UploadService.workDelete(request, "/uploads/", work+user.getStudentID()+".zip");
+            }
             JSONObject js = JsonService.createJson(true);
             JsonService.write(response, js);
         }
     }
 
+    /**
+     *
+     * @param request
+     * @param response
+     * @param works
+     * @return
+     * @throws IOException
+     */
     @RequestMapping(value="/user/download")
     public  ResponseEntity<byte[]> UserDownload(HttpServletRequest request, HttpServletResponse response,@RequestBody String works) throws IOException {
         User user = (User) LoginService.getLogin(request,Key.USER);
@@ -475,6 +508,7 @@ public class UserController {
 
     }
     /**
+     *
      * 考核内容展示
      */
     @RequestMapping("/user/getContent")

@@ -97,7 +97,7 @@ public class JsonService {
                 }
             }
         }
-        js.put("user",jsonArray);
+        js.put("student",jsonArray);
     }
 
     /**
@@ -166,7 +166,7 @@ public class JsonService {
                     jsonArray.add(jsonObject);
                 }else{
                     jsonObject.put("name","无");
-                    jsonObject.put("code","无");
+                    jsonObject.put("code",w1.getWork());
                     jsonObject.put("teacher","无");
                     jsonObject.put("grade",UserService.findByStudentID(w1.getStudentID()).getLevel());
                     jsonObject.put("type",UserService.findByStudentID(w1.getStudentID()).getType());

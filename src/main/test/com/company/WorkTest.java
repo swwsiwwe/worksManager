@@ -62,7 +62,7 @@ public class WorkTest {
     @Test
     public void testInsert(){
         Work work =  new Work();
-        work.setWork("java18");
+        work.setWork("Java18");
         work.setStart(new Date());
         work.setWorkID("112");
         work.setEnd(new Date());

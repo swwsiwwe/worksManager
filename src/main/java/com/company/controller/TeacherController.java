@@ -46,6 +46,7 @@ public class TeacherController {
     }
 
     /**
+     * okk
      * 发布考核
      */
     @RequestMapping("/teacher/newWork")
@@ -69,7 +70,6 @@ public class TeacherController {
                 JsonService.putJson(js, "error", "未检测到文件，请上传考核文件(.txt)");
                 JsonService.write(response, js);
             }else{
-
                 /*获取文件名*/
                String filename = upload.getOriginalFilename();
                 String str = filename.substring(filename.lastIndexOf("."));
@@ -313,7 +313,7 @@ public class TeacherController {
             for(Map<String,String> work:list) {
                 if (work != null) {
                     WorkService.delete(work.get("work"));
-                    UserWorkService.deleteWork("作业已被删除", work.get("work"));
+                    UserWorkService.deleteWork("已删除", work.get("work"));
                     UploadService.workDelete(request, "/works/", work.get("work") + ".txt");
                 }
             }

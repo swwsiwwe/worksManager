@@ -4,6 +4,7 @@ import com.company.dao.IUserWorkDao;
 import com.company.dao.MySqlUtils;
 import com.company.domain.UserWork;
 import java.util.List;
+import java.util.Map;
 
 public class UserWorkService {
     /**
@@ -37,15 +38,13 @@ public class UserWorkService {
         }
     }
 
-    public static void deleteWorks(String studentID,String... works){
+    public static void deleteWorks(String studentID,List<String> works){
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();
         IUserWorkDao iUserWorkDao = MySqlUtils.getIUserWorkDao();
-        if(works==null){
-
-        }else
+        if(works!=null)
         for(String work:works){
-            iUserWorkDao.delete(studentID, work);
+            iUserWorkDao.delete(work,studentID);
         }
         MySqlUtils.commit();
         MySqlUtils.close();
