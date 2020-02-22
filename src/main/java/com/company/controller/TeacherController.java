@@ -21,12 +21,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 用户页面交互
+ */
 @Controller
-@RequestMapping("/01")
+@RequestMapping("/static")
 public class TeacherController {
     /**
-     * ok
-     * 查询考核信息（教师）考核管理
+     * 教师查询考核信息/考核管理
      * @param request
      * @param response
      */
@@ -46,8 +48,14 @@ public class TeacherController {
     }
 
     /**
-     * okk
-     * 发布考核
+     * 教师发布考核
+     * @param name
+     * @param type
+     * @param level
+     * @param end
+     * @param upload
+     * @param request
+     * @param response
      */
     @RequestMapping("/teacher/newWork")
     public void newWork(String name, String type, int level, String end,@RequestParam("sfile") MultipartFile upload, HttpServletRequest request, HttpServletResponse response) {
@@ -78,7 +86,7 @@ public class TeacherController {
                     int id = WorkService.insertWork(work);
                     filename = type + "" + level + "" + id + ".txt";
                     try {
-                        UploadService.upload(request, upload, "/works/", filename);
+                        FileService.upload(request, upload, "/works/", filename);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -94,16 +102,13 @@ public class TeacherController {
 
         }
     }
-    /**/
-
     /**
-     * ok
+     * 教师个人信息展示
      * @param request
      * @param response
-     * @param teacher
      */
     @RequestMapping("/teacher/findTeacher")
-    public void findTeacher(HttpServletRequest request, HttpServletResponse response, Teacher teacher) {
+    public void findTeacher(HttpServletRequest request, HttpServletResponse response) {
         Teacher t = (Teacher) LoginService.getLogin(request, Key.TEACHER);
         if (t == null) {
             JSONObject js = JsonService.createJson(false);
@@ -119,10 +124,9 @@ public class TeacherController {
 
     /**
      * 修改教师信息
-     *ok
+     * @param json
      * @param request
      * @param response
-     * @param
      */
     @RequestMapping("/teacher/update")
     public void updateTeacher(@RequestBody String json, HttpServletRequest request, HttpServletResponse response) {
@@ -154,12 +158,11 @@ public class TeacherController {
     }
 
     /**
-     * ok
-     * 修改密码
+     * 教师修改密码
+     * @param s
      * @param request
      * @param response
      */
-
     @RequestMapping("/teacher/updatePassword")
     public void updateUserPassword(@RequestBody String s, HttpServletRequest request, HttpServletResponse response) {
         Teacher t = (Teacher) LoginService.getLogin(request, Key.TEACHER);
@@ -194,7 +197,7 @@ public class TeacherController {
     }
 
     /**
-     * ok
+     * 教师发布考核
      * @param request
      * @param response
      * @param work
@@ -224,7 +227,7 @@ public class TeacherController {
                 if (".txt".equals(str)) {
                     filename = work + ".txt";
                     try {
-                        UploadService.upload(request, upload, "/works/", filename);
+                        FileService.upload(request, upload, "/works/", filename);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -240,11 +243,10 @@ public class TeacherController {
     }
 
     /**
-     * ok
-     * 查看提交
+     * 教师查看提交
      * @param request
      * @param response
-     * @param
+     * @param json
      */
     @RequestMapping("/teacher/judgeWork")
     public void judgeWork(HttpServletRequest request, HttpServletResponse response,@RequestBody String json) {
@@ -266,8 +268,7 @@ public class TeacherController {
     }
 
     /**
-     * ok
-     * 作业批改
+     * 教师作业批改
      * @param request
      * @param response
      */
@@ -292,7 +293,7 @@ public class TeacherController {
     }
 
     /**
-     * 删除考核
+     * 教师删除考核
      * @param request
      * @param response
      */
@@ -314,7 +315,7 @@ public class TeacherController {
                 if (work != null) {
                     WorkService.delete(work.get("work"));
                     UserWorkService.deleteWork("已删除", work.get("work"));
-                    UploadService.workDelete(request, "/works/", work.get("work") + ".txt");
+                    FileService.workDelete(request, "/works/", work.get("work") + ".txt");
                 }
             }
             JSONObject js = JsonService.createJson(true);
@@ -322,6 +323,13 @@ public class TeacherController {
         }
     }
 
+    /**
+     * 教师下载考核
+     * @param request
+     * @param work
+     * @return
+     * @throws IOException
+     */
     @RequestMapping("/teacher/download")
     public ResponseEntity<byte[]> WorkDownload(HttpServletRequest request, String work) throws IOException {
         String path = request.getServletContext().getRealPath("/works/");
@@ -331,22 +339,20 @@ public class TeacherController {
         body = new byte[is.available()];
         is.read(body);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attchement;filename=" + file.getName());
+        headers.add("Content-Disposition", "attachment;filename=" + file.getName());
         HttpStatus statusCode = HttpStatus.OK;
         ResponseEntity<byte[]> entity = new ResponseEntity<byte[]>(body, headers, statusCode);
         return entity;
     }
 
     /**
-     * 考核详情
-     * ok
+     * 教师查看考核详情
      * @param request
      * @param response
      * @param json
-     * @throws IOException
      */
     @RequestMapping("/teacher/getWork")
-    public void getWork(HttpServletRequest request, HttpServletResponse response,@RequestBody String json) throws IOException {
+    public void getWork(HttpServletRequest request, HttpServletResponse response,@RequestBody String json) {
         Map<String,String> map = (Map<String, String>) JsonService.getJson(json);
         String work = map.get("code");
         Teacher t = (Teacher) LoginService.getLogin(request, Key.TEACHER);

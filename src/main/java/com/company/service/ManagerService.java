@@ -5,7 +5,6 @@ import com.company.domain.Teacher;
 import com.company.domain.User;
 import com.company.domain.UserWork;
 import com.company.domain.Work;
-
 import java.util.List;
 
 public class ManagerService {

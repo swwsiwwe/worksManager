@@ -5,10 +5,9 @@ import org.apache.ibatis.annotations.*;
 import java.util.List;
 
 public interface ITeacherDao {
-
     /**
      * 查询所有操作
-     * @return
+     * @return List<Teacher>
      */
     @Select("select * from teacher")
     List<Teacher> findAll();
@@ -23,33 +22,31 @@ public interface ITeacherDao {
     /**
      * 更新姓名
      * @param name
+     * @param workID
      */
     @Update("update teacher set name=#{name} where workID=#{workID}")
     void updateName(@Param("name") String name, @Param("workID") String workID);
 
     /**
-     * 更新联系方式
+     * 更新类别
      * @param type
+     * @param workID
      */
     @Update("update teacher set type=#{type} where workID=#{workID}")
     void updateType(@Param("type") String type, @Param("workID") String workID);
+
     /**
      * 更新联系方式
      * @param tel
+     * @param workID
      */
     @Update("update teacher set tel=#{tel} where workID=#{workID}")
     void updateTel(@Param("tel") String tel, @Param("workID") String workID);
 
     /**
-     * 更新工号
-     * @param workID
-     */
-//    @Update("update manager set workID=#{workID} where id=#{id}")
-//    void updateWorkID(@Param("workID")String workID,@Param("id") int id);
-
-    /**
      * 更新密码
      * @param password
+     * @param workID
      */
     @Update("update teacher set password=#{password} where workID=#{workID}")
     void updatePassword(@Param("password") String password,@Param("workID") String workID);
@@ -68,11 +65,4 @@ public interface ITeacherDao {
      */
     @Delete("delete from teacher where workID=#{workID}")
     void delete(String workID);
-
-    /**
-     * 查找表行数
-     * @return
-     */
-//    @Select("select count(id) from manager")
-//    int count();
 }

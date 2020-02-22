@@ -5,8 +5,8 @@ import org.apache.ibatis.annotations.*;
 import java.util.Date;
 import java.util.List;
 
-//work_user
 public interface IUserWorkDao {
+
     /**
      * 查询学生作业信息
      * @return
@@ -58,7 +58,6 @@ public interface IUserWorkDao {
     @Select("select * from work_user where work=#{work}")
     List<UserWork> findByWork(String work);
 
-
     /**
      * 查找某作业提交信息 一条
      * @param work
@@ -82,7 +81,12 @@ public interface IUserWorkDao {
     @Delete("delete from work_user where studentID=#{studentID}")
     void deleteAll(@Param("studentID") String studentID);
 
-
+    /**
+     * 查找无效作业
+     * @param studentID
+     * @param status
+     * @return
+     */
     @Select("select * from work_user where studentID=#{studentID} and status=#{status}")
     List<UserWork> selectInvalidUserWork(@Param("studentID") String studentID,@Param("status") String status);
 
@@ -92,11 +96,4 @@ public interface IUserWorkDao {
      */
     @Delete("delete from work_user where work=#{work} and studentID=#{studentID}")
     void delete(@Param("work") String work,@Param("studentID") String studentID);
-
-    /**
-     * 查找提交人数
-     * @return
-     */
-    @Select("select count(id) from work_user where work=#{work}")
-    int count(String work);
 }

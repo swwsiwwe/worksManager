@@ -25,7 +25,6 @@ public class UserWork implements Serializable {
         this.studentID = studentID;
     }
 
-
     public Date getDate() {
         return date;
     }
@@ -65,5 +64,4 @@ public class UserWork implements Serializable {
                 ", work='" + work + '\'' +
                 '}';
     }
-
 }

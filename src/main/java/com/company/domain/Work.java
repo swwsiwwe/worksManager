@@ -42,7 +42,6 @@ public class Work implements Serializable {
         return end;
     }
 
-
     public Integer getLevel() {
         return level;
     }
@@ -50,7 +49,6 @@ public class Work implements Serializable {
     public String getType() {
         return type;
     }
-
 
     public void setId(Integer id) {
         this.id = id;

@@ -9,11 +9,6 @@ import java.util.List;
 
 public class TeacherService {
 
-    /**
-     * 查找教师信息
-     * @param workID
-     * @return
-     */
     public static Teacher findByWorkID(String workID){
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();
@@ -23,11 +18,6 @@ public class TeacherService {
         return m;
     }
 
-    /**
-     * 修改密码
-     * @param password
-     * @param workID
-     */
     public static void updatePassword(String password,String workID) {
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();
@@ -37,11 +27,6 @@ public class TeacherService {
         MySqlUtils.close();
     }
 
-    /**
-     * 改名字
-     * @param name
-     * @param workID
-     */
     public static void updateName(String name,String workID) {
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();
@@ -69,11 +54,6 @@ public class TeacherService {
         MySqlUtils.close();
     }
 
-    /**
-     * 根据工号获得教师姓名
-     * @param workID
-     * @return
-     */
     public static String getName(String workID){
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();
@@ -83,9 +63,6 @@ public class TeacherService {
         return teacher.getName();
     }
 
-    /**
-     * 获得学生作业
-     */
     public static List<UserWork> getUserWorks(String work){
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();

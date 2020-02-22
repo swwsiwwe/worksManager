@@ -6,29 +6,20 @@ import java.util.Date;
 import java.util.List;
 
 public interface IWorkDao {
-    /**
-     * 查询考核信息
-     * @return
-     */
-//    @Select("select * from work")
-//    List<Work> findAll();
 
-    /**
-     * 查询考核信息
-     * @param workID
-     * @return
-     */
-    @Select("select * from work where workID=#{workID}")
-    List<Work> findByWorkID(String workID);
     /**
      * 插入一条作业信息
      * @param work
      */
-
     @Insert("insert into work(name,work,workID,start,end,level,type) values(#{name},#{work},#{workID},#{start},#{end},#{level},#{type})")
     @SelectKey(statement = "select last_insert_id()" ,keyProperty = "id",keyColumn = "id",resultType = int.class,before = false)
     int insert(Work work);
 
+    /**
+     * 修改考核名字
+     * @param name
+     * @param work
+     */
     @Update("update work set name=#{name} where work=#{work}")
     void updateName(@Param("name") String name, @Param("work") String work);
 
@@ -46,9 +37,14 @@ public interface IWorkDao {
     @Update("update work set end=#{end} where work=#{work}")
     void updateEnd(@Param("end") Date end, @Param("work") String work);
 
-
+    /**
+     * 设置标识码
+     * @param work
+     * @param id
+     */
     @Update("update work set work=#{work} where id=#{id}")
     void updateWork(@Param("work") String work,@Param("id") int id);
+
     /**
      * 查找作业信息
      * @param workID

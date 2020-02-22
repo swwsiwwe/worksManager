@@ -4,14 +4,9 @@ import com.company.dao.IUserWorkDao;
 import com.company.dao.MySqlUtils;
 import com.company.domain.UserWork;
 import java.util.List;
-import java.util.Map;
 
 public class UserWorkService {
-    /**
-     * 更新
-     * @param status
-     * @param studentID
-     */
+
     public static void updateStatus(String status,String studentID,String work){
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();
@@ -20,15 +15,13 @@ public class UserWorkService {
         MySqlUtils.commit();
         MySqlUtils.close();
     }
-    /**
-     * 删除
-     */
+
     public static List<UserWork> deleteInvalidWork(String studentID){
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();
         IUserWorkDao iUserWorkDao = MySqlUtils.getIUserWorkDao();
-        List<UserWork> list = iUserWorkDao.selectInvalidUserWork(studentID,"作业已被删除");
-        iUserWorkDao.deleteAllByStatus(studentID,"作业已被删除");
+        List<UserWork> list = iUserWorkDao.selectInvalidUserWork(studentID,"已删除");
+        iUserWorkDao.deleteAllByStatus(studentID,"已删除");
         MySqlUtils.commit();
         MySqlUtils.close();
         if(list!=null&&!list.isEmpty()){
@@ -50,9 +43,6 @@ public class UserWorkService {
         MySqlUtils.close();
     }
 
-    /**
-     * 延迟删除
-     */
     public static void deleteWork(String status,String work){
         MySqlUtils MySqlUtils = new MySqlUtils();
         MySqlUtils.init();

@@ -10,6 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Json创建修改
+ */
 public class JsonService {
     public static void putJson(JSONObject jsonObject,String key,String val)  {
         jsonObject.put(key,val);
@@ -29,10 +32,6 @@ public class JsonService {
         return js;
     }
 
-    /**
-     * 将user写为json
-     * @param user
-     */
     public static void writeUserJson(JSONObject jsonObject,User user){
         if(user==null){
             jsonObject.put("name",null);
@@ -48,11 +47,6 @@ public class JsonService {
         }
     }
 
-
-    /**
-     * 将Teacher写为json
-     * @param teacher
-     */
     public static void writeTeacherJson(JSONObject jsonObject,Teacher teacher){
         if(teacher==null){
             jsonObject.put("name",null);
@@ -67,7 +61,6 @@ public class JsonService {
             jsonObject.put("type", teacher.getType());
         }
     }
-
 
     public static void writeTeachersJson(JSONObject js,List<Teacher> list){
         JSONArray jsonArray = new JSONArray();
@@ -100,10 +93,6 @@ public class JsonService {
         js.put("student",jsonArray);
     }
 
-    /**
-     * 将Work写为json
-     * @param work
-     */
     public static void writeWorkJson(JSONObject o,Work work) {
         JSONObject jsonObject = new JSONObject();
         if (work == null) {
@@ -121,10 +110,7 @@ public class JsonService {
         }
         o.put("work", jsonObject);
     }
-    /**
-     * jsonArray
-     * @param list work
-     */
+
     public static void writeArrayWorkJson(JSONObject o,List<Work> list){
         JSONArray jsonArray = new JSONArray();
         JSONObject jsonObject;
@@ -144,10 +130,7 @@ public class JsonService {
         }
         o.put("work",jsonArray);
     }
-    /**
-     * jsonArray
-     * @param list userWork
-     */
+
     public static void writeArrayUserWorkJson(JSONObject o,List<UserWork> list){
         JSONArray jsonArray = new JSONArray();
         JSONObject jsonObject;

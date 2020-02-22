@@ -3,8 +3,10 @@ package com.company.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.company.domain.*;
 import com.company.service.*;
+import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,17 +22,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 
 /**
- * 用户控制类
+ * 用户页面交互
  */
 @Controller
-@RequestMapping("/01")
+@RequestMapping("/static")
 public class UserController {
     /**
-     * ok
-     * 考核
+     * 用户注册
      * @param json
      * @param request
      * @param response
@@ -60,8 +63,8 @@ public class UserController {
     }
 
     /**
-     * ok
-     * 登录操作
+     * 用户登录
+     * @param json
      * @param req
      * @param resp
      */
@@ -125,12 +128,22 @@ public class UserController {
         } else {
             JsonService.putJson(js, "error", val);
         }
-
         JsonService.write(resp, js);
     }
 
     /**
-     * ok
+     * 教师学生管理员用户退出
+     * @param request
+     * @param response
+     */
+    @RequestMapping("/user/logout")
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        LoginService.deleteLogin(request);
+        JSONObject js = JsonService.createJson(true);
+        JsonService.write(response, js);
+    }
+
+    /**
      * 返回验证码
      * @param request
      * @param response
@@ -141,9 +154,9 @@ public class UserController {
             BufferedImage verifyImg = new BufferedImage(200, 69, BufferedImage.TYPE_INT_RGB);
             String randomText = VerifyCode.drawRandomText(200, 69, verifyImg);
             request.getSession().setAttribute("verifyCode", randomText);
-            response.setContentType("image/png");//必须设置响应内容类型为图片，否则前台不识别
-            OutputStream os = response.getOutputStream(); //获取文件输出流
-            ImageIO.write(verifyImg, "png", os);//输出图片流
+            response.setContentType("image/png");
+            OutputStream os = response.getOutputStream();
+            ImageIO.write(verifyImg, "png", os);
             os.flush();
             os.close();
         } catch (IOException e) {
@@ -152,9 +165,9 @@ public class UserController {
     }
 
     /**
-     * ok
      * 查询用户个人信息
      * @param request
+     * @param response
      */
     @RequestMapping("/user/findUser")
     public void findByStudentID(HttpServletRequest request, HttpServletResponse response) {
@@ -167,20 +180,18 @@ public class UserController {
             JSONObject js = JsonService.createJson(true);
             JsonService.writeUserJson(js,user);
             JsonService.write(response, js);
-            System.out.println("!!"+user+"!!");
             LoginService.saveLogin(request, response, user, Key.USER);
         }
     }
 
     /**
-     * ok
      * 修改个人信息
+     * @param s
      * @param request
      * @param response
-     * @param
      */
     @RequestMapping("/user/update")
-    public void updateUser(@RequestBody String s,HttpServletRequest request, HttpServletResponse response/* User user*/) {
+    public void updateUser(@RequestBody String s,HttpServletRequest request, HttpServletResponse response) {
         Map<String,String> map = (Map<String, String>) JsonService.getJson(s);
         String level = map.get("level");
         String name = map.get("name");
@@ -209,7 +220,7 @@ public class UserController {
     }
 
     /**
-     * ok
+     * 学生修改密码
      * @param s
      * @param request
      * @param response
@@ -246,7 +257,6 @@ public class UserController {
     }
 
     /**
-     * ok
      * 查询可提交作业
      * @param request
      * @param response
@@ -259,7 +269,6 @@ public class UserController {
             JsonService.putJson(js, "error", "timeOut");
             JsonService.write(response, js);
         } else {
-
             LoginService.saveLogin(request, response, user, Key.USER);
             String type = user.getType();
             int level = user.getLevel();
@@ -271,14 +280,16 @@ public class UserController {
     }
 
     /**
-     * ok
      * 显示考核界面
      * @param request
      * @param response
-     * @param work
+     * @param json
      */
     @RequestMapping("/user/getWork")
-    public void getWork(HttpServletRequest request, HttpServletResponse response, String work) {
+    public void getWork(HttpServletRequest request, HttpServletResponse response, @RequestBody String json) {
+        Map<String,String> map = (Map<String, String>) JsonService.getJson(json);
+        String work = map.get("code");
+        System.out.println(work);
         User user = (User) LoginService.getLogin(request, Key.USER);
         if (user == null) {
             JSONObject js = JsonService.createJson(false);
@@ -293,7 +304,6 @@ public class UserController {
     }
 
     /**
-     * ok
      * 学生查询已提交作业
      * @param request
      * @param response
@@ -315,7 +325,6 @@ public class UserController {
     }
 
     /**
-     * ok
      * 在线上传作业
      * @param sfile
      * @param req
@@ -345,7 +354,7 @@ public class UserController {
                 if (".zip".equals(str)) {
                     filename = work + user.getStudentID() + ".zip";
                     /*文件上传*/
-                    UploadService.upload(req, sfile, "/uploads/", filename);
+                    FileService.upload(req, sfile, "/uploads/", filename);
                     UserWork userWork = new UserWork();
                     userWork.setDate(new Date());
                     userWork.setStudentID(user.getStudentID());
@@ -364,8 +373,7 @@ public class UserController {
     }
 
     /**
-     * 离线上传 url上传
-     *ok
+     * 离线上传 利用url上传
      * @param req
      * @param resp
      * @param upload
@@ -397,7 +405,7 @@ public class UserController {
                 String str = filename.substring(filename.lastIndexOf("."));
                 if (".zip".equals(str)) {
                     filename = work + user.getStudentID() + ".zip";
-                    UploadService.upload(req, upload, "/uploads/", filename);
+                    FileService.upload(req, upload, "/uploads/", filename);
                     UserWork userWork = new UserWork();
                     userWork.setDate(new Date());
                     userWork.setStudentID(user.getStudentID());
@@ -432,7 +440,7 @@ public class UserController {
             List<UserWork> list = UserWorkService.deleteInvalidWork(user.getStudentID());
             if(list!=null){
                 for(UserWork u:list){
-                    UploadService.workDelete(request, "/uploads/", u.getWork()+user.getStudentID()+".zip");
+                    FileService.workDelete(request, "/uploads/", u.getWork()+user.getStudentID()+".zip");
                 }
             }
             JSONObject js = JsonService.createJson(true);
@@ -444,6 +452,7 @@ public class UserController {
      * 删除/批量删除
      * @param request
      * @param response
+     * @param jsons
      */
     @RequestMapping("/user/deleteUserWorks")
     public void deleteUserWorks(HttpServletRequest request, HttpServletResponse response,@RequestBody String jsons) {
@@ -463,7 +472,7 @@ public class UserController {
             System.out.println(p);
             UserWorkService.deleteWorks(user.getStudentID(),p);
             for(String work:p){
-                UploadService.workDelete(request, "/uploads/", work+user.getStudentID()+".zip");
+                FileService.workDelete(request, "/uploads/", work+user.getStudentID()+".zip");
             }
             JSONObject js = JsonService.createJson(true);
             JsonService.write(response, js);
@@ -471,55 +480,141 @@ public class UserController {
     }
 
     /**
-     *
+     *学生下载提交作业
      * @param request
-     * @param response
+     * @param
      * @param works
      * @return
      * @throws IOException
      */
     @RequestMapping(value="/user/download")
-    public  ResponseEntity<byte[]> UserDownload(HttpServletRequest request, HttpServletResponse response,@RequestBody String works) throws IOException {
-        User user = (User) LoginService.getLogin(request,Key.USER);
-        System.out.println(works);
-        Map<String,List<Map<String,String>>> map = (Map<String, List<Map<String, String>>>) JsonService.getJson(works);
-        System.out.println(map.get("work"));
-        List<Map<String, String>> list = map.get("work");
-        //System.out.println(list);
-        String path = request.getServletContext().getRealPath("/uploads/");
-        if(list!=null&&!list.isEmpty())
-            for(Map<String,String> work:list){
-              System.out.println(work);
-            File file = new File(path + work.get("work") + user.getStudentID() + ".zip");
-            byte[] body = null;
-            InputStream is = new FileInputStream(file);
-            body = new byte[is.available()];
-            is.read(body);
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "attachment;filename=" + file.getName());
-            HttpStatus statusCode = HttpStatus.OK;
-            ResponseEntity<byte[]> entity = new ResponseEntity<byte[]>(body, headers, statusCode);
-            return entity;
-        }
-        return null;
-//      JSONObject js = JsonService.createJson(true);
-//      js.put("url",request.getServletContext().getRealPath("/uploads/")+"java18123.zip");
-//      JsonService.write(response,js);
+    public  ResponseEntity<byte[]> UserDownload(HttpServletRequest request,@RequestBody String works) throws IOException {
+        User user = (User) LoginService.getLogin(request, Key.USER);
+        byte[] body = null;
+        HttpHeaders headers = null;
+        if (user != null) {
+            String path = request.getServletContext().getRealPath("/uploads/");
+            System.out.println(works);
+            Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
+            List<Map<String, String>> list = (List<Map<String, String>>) map.get("work");
+            if (list != null && !list.isEmpty()) {
+                for (Map<String, String> work : list) {
+                    File file = new File(path + work.get("work") + user.getStudentID() + ".zip");
+                    InputStream is = new FileInputStream(file);
+                    body = new byte[is.available()];
+                    is.read(body);
+                    headers = new HttpHeaders();
+                    headers.add("Content-Disposition", "attachment;filename=" + file.getName());
+                }
+            }
+        } else {
+            String path = request.getServletContext().getRealPath("/uploads/");
+            System.out.println(works);
+            Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
+            System.out.println(map.get("work"));
 
+            List<Map<String, String>> list = (List<Map<String, String>>) map.get("studentID");
+            String work = (String) map.get("work");
+            if (list != null && !list.isEmpty()) {
+                for (Map<String, String> studentID : list) {
+                    File file = new File(path + work + studentID.get("studentID") + ".zip");
+                    InputStream is = new FileInputStream(file);
+                    body = new byte[is.available()];
+                    is.read(body);
+                    headers = new HttpHeaders();
+                    headers.add("Content-Disposition", "attachment;filename=" + file.getName());
+                }
+            }
+            System.out.println("null");
+        }
+        ResponseEntity<byte[]> entity = new ResponseEntity<byte[]>(body, headers, HttpStatus.OK);
+        return entity;
     }
+
     /**
-     *
+     * 学生批量下载文件
+     * @param request
+     * @param works
+     * @return 下载文件流
+     * @throws IOException
+     */
+    @RequestMapping("/user/downloadAll")
+    public ResponseEntity<byte[]> downloadAll(HttpServletRequest request,@RequestBody String works) throws IOException {
+        User user = (User) LoginService.getLogin(request, Key.USER);
+        File file;
+        HttpHeaders headers;
+        if(user!=null){
+            Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
+            System.out.println(map.get("work"));
+            List<Map<String, String>> list = (List<Map<String, String>>) map.get("work");
+            String resourcesName = "kao_he.zip";
+            String path = request.getServletContext().getRealPath("/uploads/");
+            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(path+resourcesName));
+            InputStream input = null;
+            if (list != null && !list.isEmpty()) {
+                for (Map<String, String> work : list) {
+                    String name = path + work.get("work") + user.getStudentID() + ".zip";
+                    input = new FileInputStream(new File(name));
+                    zipOut.putNextEntry(new ZipEntry(work.get("work") + user.getStudentID() + ".zip"));
+                    int temp = 0;
+                    while ((temp = input.read()) != -1) {
+                        zipOut.write(temp);
+                    }
+                }
+            }
+            input.close();
+            zipOut.close();
+            file = new File(path+resourcesName);
+            headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment;filename=" + file.getName());
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        }else{
+            Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
+            System.out.println(map.get("work"));
+            String work = (String) map.get("work");
+            List<Map<String, String>> list = (List<Map<String, String>>) map.get("studentID");
+            String resourcesName = "kao_he.zip";
+            String path = request.getServletContext().getRealPath("/uploads/");
+            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(path+resourcesName));
+            InputStream input = null;
+            if (list != null && !list.isEmpty()) {
+                for (Map<String, String> studentID : list) {
+                    String name = path + work + studentID.get("studentID") + ".zip";
+                    input = new FileInputStream(new File(name));
+                    zipOut.putNextEntry(new ZipEntry(work + studentID.get("studentID") + ".zip"));
+                    int temp = 0;
+                    while ((temp = input.read()) != -1) {
+                        zipOut.write(temp);
+                    }
+                }
+            }
+            input.close();
+            zipOut.close();
+            file = new File(path+resourcesName);
+            headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment;filename=" + file.getName());
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        }
+        return new ResponseEntity<byte[]>(FileUtils.readFileToByteArray(file),headers,HttpStatus.OK);
+    }
+
+    /**
      * 考核内容展示
+     * @param request
+     * @param response
+     * @param json
      */
     @RequestMapping("/user/getContent")
-    public void getContent(HttpServletRequest request,HttpServletResponse response, String work) {
+    public void getContent(HttpServletRequest request,HttpServletResponse response,@RequestBody String json) {
+        Map<String,String> map =(Map<String, String>)JsonService.getJson(json);
+        String work =map.get("code");
         String path = request.getServletContext().getRealPath("/works/");
         File file = new File(path + work +  ".txt");
         try{
-            BufferedReader br = new BufferedReader(new FileReader(file));
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
             StringBuilder sb = new StringBuilder();
             String s = null;
-            while((s = br.readLine())!=null){//使用readLine方法，一次读一行
+            while((s = br.readLine())!=null){
                 sb.append(System.lineSeparator()+s);
             }
             br.close();

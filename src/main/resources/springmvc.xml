@@ -13,7 +13,7 @@
 <!-- 开启注解扫描 -->
     <context:component-scan base-package="com.company.controller"></context:component-scan>
 
-    <mvc:resources mapping="/01/**" location="/01/"/>
+    <mvc:resources mapping="/static/**" location="/static/"/>
     <!-- 视图解析器 -->
     <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <!--表示文件目录-->

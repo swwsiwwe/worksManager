@@ -1,4 +1,4 @@
-package com.company.service;
+package com.company.controller;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Random;
