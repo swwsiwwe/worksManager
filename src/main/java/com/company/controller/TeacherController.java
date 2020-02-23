@@ -3,8 +3,10 @@ package com.company.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.company.domain.*;
 import com.company.service.*;
+import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,13 +15,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * 用户页面交互
@@ -58,7 +59,7 @@ public class TeacherController {
      * @param response
      */
     @RequestMapping("/teacher/newWork")
-    public void newWork(String name, String type, int level, String end,@RequestParam("sfile") MultipartFile upload, HttpServletRequest request, HttpServletResponse response) {
+    public void newWork(String name, String type, Integer level, String end,@RequestParam("sfile") MultipartFile upload, HttpServletRequest request, HttpServletResponse response) {
         Teacher t = (Teacher) LoginService.getLogin(request, Key.TEACHER);
         Work work = new Work();
         if (t == null) {
@@ -95,7 +96,7 @@ public class TeacherController {
                     JsonService.write(response, js);
                 } else {
                     JSONObject js = JsonService.createJson(false);
-                    JsonService.putJson(js, "error", "请上传“.txt”压缩文件");
+                    JsonService.putJson(js, "error", "请上传“.txt”文件");
                     JsonService.write(response, js);
                 }
             }
@@ -324,25 +325,75 @@ public class TeacherController {
     }
 
     /**
-     * 教师下载考核
+     * 教师下载提交作业
      * @param request
-     * @param work
+     * @param
+     * @param works
      * @return
      * @throws IOException
      */
-    @RequestMapping("/teacher/download")
-    public ResponseEntity<byte[]> WorkDownload(HttpServletRequest request, String work) throws IOException {
-        String path = request.getServletContext().getRealPath("/works/");
-        File file = new File(path + work + ".txt");
+    @RequestMapping(value="/teacher/download")
+    public  ResponseEntity<byte[]> UserDownload(HttpServletRequest request,@RequestBody String works) throws IOException {
         byte[] body = null;
-        InputStream is = new FileInputStream(file);
-        body = new byte[is.available()];
-        is.read(body);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Disposition", "attachment;filename=" + file.getName());
-        HttpStatus statusCode = HttpStatus.OK;
-        ResponseEntity<byte[]> entity = new ResponseEntity<byte[]>(body, headers, statusCode);
+        HttpHeaders headers = null;
+        String path = request.getServletContext().getRealPath("/uploads/");
+        System.out.println(works);
+        Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
+        System.out.println(map.get("work"));
+        List<Map<String, String>> list = (List<Map<String, String>>) map.get("studentID");
+        String work = (String) map.get("work");
+        if (list != null && !list.isEmpty()) {
+            for (Map<String, String> studentID : list) {
+                File file = new File(path + work + studentID.get("studentID") + ".zip");
+                InputStream is = new FileInputStream(file);
+                body = new byte[is.available()];
+                is.read(body);
+                headers = new HttpHeaders();
+                headers.add("Content-Disposition", "attachment;filename=" + file.getName());
+            }
+        }
+        System.out.println("null");
+        ResponseEntity<byte[]> entity = new ResponseEntity<byte[]>(body, headers, HttpStatus.OK);
         return entity;
+    }
+
+    /**
+     * 教师批量下载文件
+     * @param request
+     * @param works
+     * @return 下载文件流
+     * @throws IOException
+     */
+    @RequestMapping("/teacher/downloadAll")
+    public ResponseEntity<byte[]> downloadAll(HttpServletRequest request,@RequestBody String works) throws IOException {
+        File file;
+        HttpHeaders headers;
+        Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
+        System.out.println(map.get("work"));
+        String work = (String) map.get("work");
+        List<Map<String, String>> list = (List<Map<String, String>>) map.get("studentID");
+        String resourcesName = "kao_he.zip";
+        String path = request.getServletContext().getRealPath("/uploads/");
+        ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(path + resourcesName));
+        InputStream input = null;
+        if (list != null && !list.isEmpty()) {
+            for (Map<String, String> studentID : list) {
+                String name = path + work + studentID.get("studentID") + ".zip";
+                input = new FileInputStream(new File(name));
+                zipOut.putNextEntry(new ZipEntry(work + studentID.get("studentID") + ".zip"));
+                int temp = 0;
+                while ((temp = input.read()) != -1) {
+                    zipOut.write(temp);
+                }
+            }
+        }
+        input.close();
+        zipOut.close();
+        file = new File(path + resourcesName);
+        headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment;filename=" + file.getName());
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        return new ResponseEntity<byte[]>(FileUtils.readFileToByteArray(file), headers, HttpStatus.OK);
     }
 
     /**

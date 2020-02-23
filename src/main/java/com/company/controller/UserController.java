@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-
 /**
  * 用户页面交互
  */
@@ -507,25 +506,6 @@ public class UserController {
                     headers.add("Content-Disposition", "attachment;filename=" + file.getName());
                 }
             }
-        } else {
-            String path = request.getServletContext().getRealPath("/uploads/");
-            System.out.println(works);
-            Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
-            System.out.println(map.get("work"));
-
-            List<Map<String, String>> list = (List<Map<String, String>>) map.get("studentID");
-            String work = (String) map.get("work");
-            if (list != null && !list.isEmpty()) {
-                for (Map<String, String> studentID : list) {
-                    File file = new File(path + work + studentID.get("studentID") + ".zip");
-                    InputStream is = new FileInputStream(file);
-                    body = new byte[is.available()];
-                    is.read(body);
-                    headers = new HttpHeaders();
-                    headers.add("Content-Disposition", "attachment;filename=" + file.getName());
-                }
-            }
-            System.out.println("null");
         }
         ResponseEntity<byte[]> entity = new ResponseEntity<byte[]>(body, headers, HttpStatus.OK);
         return entity;
@@ -541,8 +521,8 @@ public class UserController {
     @RequestMapping("/user/downloadAll")
     public ResponseEntity<byte[]> downloadAll(HttpServletRequest request,@RequestBody String works) throws IOException {
         User user = (User) LoginService.getLogin(request, Key.USER);
-        File file;
-        HttpHeaders headers;
+        File file=null;
+        HttpHeaders headers=null;
         if(user!=null){
             Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
             System.out.println(map.get("work"));
@@ -556,32 +536,6 @@ public class UserController {
                     String name = path + work.get("work") + user.getStudentID() + ".zip";
                     input = new FileInputStream(new File(name));
                     zipOut.putNextEntry(new ZipEntry(work.get("work") + user.getStudentID() + ".zip"));
-                    int temp = 0;
-                    while ((temp = input.read()) != -1) {
-                        zipOut.write(temp);
-                    }
-                }
-            }
-            input.close();
-            zipOut.close();
-            file = new File(path+resourcesName);
-            headers = new HttpHeaders();
-            headers.add("Content-Disposition", "attachment;filename=" + file.getName());
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        }else{
-            Map<String, Object> map = (Map<String, Object>) JsonService.getJson(works);
-            System.out.println(map.get("work"));
-            String work = (String) map.get("work");
-            List<Map<String, String>> list = (List<Map<String, String>>) map.get("studentID");
-            String resourcesName = "kao_he.zip";
-            String path = request.getServletContext().getRealPath("/uploads/");
-            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(path+resourcesName));
-            InputStream input = null;
-            if (list != null && !list.isEmpty()) {
-                for (Map<String, String> studentID : list) {
-                    String name = path + work + studentID.get("studentID") + ".zip";
-                    input = new FileInputStream(new File(name));
-                    zipOut.putNextEntry(new ZipEntry(work + studentID.get("studentID") + ".zip"));
                     int temp = 0;
                     while ((temp = input.read()) != -1) {
                         zipOut.write(temp);
